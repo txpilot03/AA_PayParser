@@ -1,0 +1,23 @@
+{
+  "name": "aa_payparser",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.ts",
+  "type": "module",
+  "scripts": {
+    "start": "electron ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "exceljs": "^4.4.0",
+    "luxon": "^3.7.1",
+    "pdf-lib": "^1.17.1",
+    "pdf-parse": "^1.1.1",
+    "pdfjs-dist": "^5.3.93"
+  },
+  "devDependencies": {
+    "electron": "37.2.4"
+  }
+}

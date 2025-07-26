@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AA PayParser</title>
+  <style>
+    .wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      /* font-family: Arial, sans-serif; */
+    }
+    .row {
+      display: flex;
+      flex-direction: row;
+      height: 120px;
+    }
+
+    .column {
+      display: flex;
+      flex-direction: column;
+      width: 50%;
+      height: 100%;
+      gap: 12px;
+      justify-content: space-between;
+    }
+    
+    hr.divider-horizontal {
+      margin: 8px 0px;
+    }
+
+    hr.divider-vertical {
+      margin: 0px 8px;
+    }
+
+    input[type="file"]::-webkit-file-upload-button {
+      padding: 10px 20px;
+      width: 150px;
+      border-radius: 5px;
+      background: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    input[type="file"]::file-selector-button {
+      padding: 8px 16px;
+      border-radius: 5px;
+      background: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    #convertBtn {
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      width: 150px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+  </style>
+</head>
+
+<body>
+  <div>
+    <h1>AA Earnings Statement Converter</h1>
+    <h4>Convert your AA pay statement PDF to Excel</h4>
+    <hr class="divider-horizontal"/>
+    <div class="row">
+      <div class="column">
+        <label for="pdfFile">Select PDF File:</label>
+        <!-- <div><sm></sm>Note: The file will be saved in your Downloads folder as "output.xlsx".</sm></div> -->
+        <input type="file" id="pdfFile"/>
+      </div>
+      <hr class="divider-vertical"/>
+      <div class="column">
+        <label for="fileName">Select output file, if it exists:</label>
+        <input type="file" id="excelFile"/>
+      </div>
+    </div>
+    <hr class="divider-horizontal"/>
+    <p>Click the button below to convert the PDF file to an Excel file.</p>
+      <button id="convertBtn">Convert</button>
+    <p id="status"></p>
+  </div>
+  
+  <script>
+    document.getElementById('convertBtn').addEventListener('click', () => {
+
+      const pdfFileInput = document.getElementById('pdfFile');
+      const excelFileInput = document.getElementById('excelFile');
+      const pdfFile = pdfFileInput.files[0];
+      const excelFile = excelFileInput.files[0];
+    
+      if (pdfFile) {
+      document.getElementById('status').textContent = 'Converting...';
+
+      // Create Promises for reading both files
+      const pdfFileReaderPromise = new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = function (event) {
+          resolve(event.target.result); // Resolve with PDF file buffer
+        };
+        reader.onerror = reject; // Reject if there's an error
+        reader.readAsArrayBuffer(pdfFile); // Read PDF file as ArrayBuffer
+      });
+
+      const excelFileReaderPromise = excelFile ? new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = function (event) {
+          resolve(event.target.result); // Resolve with Excel file buffer
+        };
+        reader.onerror = reject; // Reject if there's an error
+        reader.readAsArrayBuffer(excelFile); // Read Excel file as ArrayBuffer
+      }) : Promise.resolve(undefined); // If no Excel file, resolve with null
+
+      // Wait for both files to be read using Promise.all
+      Promise.all([pdfFileReaderPromise, excelFileReaderPromise])
+        .then(([pdfFileBuffer, excelFileBuffer]) => {
+          // Now both files are read, and we can pass the buffers to the main process
+          console.log("PDF File Buffer:", pdfFileBuffer);
+          console.log("Excel File Buffer:", excelFileBuffer);
+          window.ipcRenderer.invoke('parse-pdf', 
+            pdfFileBuffer,
+            excelFileBuffer
+          )
+          .then(outputFilePath => {
+            document.getElementById('status').textContent = `Conversion complete. File saved at: ${outputFilePath}`;
+          })
+          .catch(err => {
+            document.getElementById('status').textContent = `Error: ${err}`;
+          });
+        })
+        .catch(err => {
+          document.getElementById('status').textContent = `Error reading files: ${err}`;
+        });
+    } else {
+      document.getElementById('status').textContent = 'Please select a PDF file.';
+    }
+      // if (pdfFile) {
+      //   document.getElementById('status').textContent = 'Converting...';
+      //   // Use FileReader to read the file as a Buffer
+      //   const reader = new FileReader();
+      //   reader.onload = async function (event) {
+      //     const fileBuffer = event[0].target.result;
+      //     excelFileBuffer = undefined;
+      //     if (excelFile) {
+      //       excelFileBuffer = event[1].target.result;
+      //     } 
+      //     try {
+      //       // Send the fileBuffer to the main process
+      //       const outputFilePath = await window.ipcRenderer.invoke('parse-pdf', { 
+      //         fileBuffer, 
+      //         excelFileBuffer 
+      //       });
+      //       document.getElementById('status').textContent = `Conversion complete. File saved at: ${outputFilePath}`;
+      //     } catch (err) {
+      //       document.getElementById('status').textContent = `Error: ${err}`;
+      //     }
+      //   };
+
+      //   reader.readAsArrayBuffer([pdfFile, excelFile]);
+      //   //reader.readAsArrayBuffer(excelFile);
+      // } else {
+      //   document.getElementById('status').textContent = 'Please select a PDF file.';
+      // }
+
+    });
+  </script>
+</body>
+
+</html>
