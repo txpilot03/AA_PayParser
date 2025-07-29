@@ -2,7 +2,7 @@
   "name": "aa_payparser",
   "version": "1.0.0",
   "description": "",
-  "main": "main.ts",
+  "main": "main.js",
   "type": "module",
   "scripts": {
     "start": "electron ."

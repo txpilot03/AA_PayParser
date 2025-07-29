@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,31 +10,76 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
+      justify-content: space-between;
       height: 100vh;
       /* font-family: Arial, sans-serif; */
     }
+
+    .body {
+      width: 100%;
+      height: 100%;
+      /* padding: 20px; */
+      /* box-sizing: border-box; */
+    }
+
     .row {
       display: flex;
       flex-direction: row;
-      height: 120px;
+      width: 100%;
     }
 
-    .column {
+    .gap {
+      gap: 4px;
+    }
+
+    .row-number {
+      width: 75px;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 36px;
+      color: #333;
+      padding: 8px 0;
+    }
+
+    .column-1 {
       display: flex;
       flex-direction: column;
-      width: 50%;
+      width: 100%;
       height: 100%;
       gap: 12px;
+      padding: 8px 0px;
       justify-content: space-between;
     }
-    
+
+    .column-2 {
+      display: flex;
+      flex-direction: column;
+      width: 45%;
+      height: 100%;
+      gap: 12px;
+      padding: 8px 0px;
+      justify-content: space-between;
+    }
+
     hr.divider-horizontal {
       margin: 8px 0px;
     }
 
     hr.divider-vertical {
-      margin: 0px 8px;
+      height: 100%;
+      /* margin: 0px 8px; */
+    }
+
+    .column-divider {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-evenly;
+      width: 10%;
+      /* height: 100%; */
     }
 
     input[type="file"]::-webkit-file-upload-button {
@@ -57,7 +103,8 @@
       font-size: 16px;
     }
 
-    #convertBtn {
+    #convertBtn,
+    #browseBtn {
       padding: 10px 20px;
       background-color: #007bff;
       color: white;
@@ -67,112 +114,174 @@
       cursor: pointer;
       font-size: 16px;
     }
+
+    #openFile,
+    #outputFileName {
+      width: 100%
+    }
+
+    #convertBtn:disabled,
+    #browseBtn:disabled {
+      background-color: lightgray;
+    }
+
+    .footer-text {
+      text-align: center;
+      font-size: 14px;
+      color: #666;
+      margin: 10px 0;
+    }
   </style>
 </head>
 
 <body>
-  <div>
-    <h1>AA Earnings Statement Converter</h1>
-    <h4>Convert your AA pay statement PDF to Excel</h4>
-    <hr class="divider-horizontal"/>
-    <div class="row">
-      <div class="column">
-        <label for="pdfFile">Select PDF File:</label>
-        <!-- <div><sm></sm>Note: The file will be saved in your Downloads folder as "output.xlsx".</sm></div> -->
-        <input type="file" id="pdfFile"/>
+  <div class="wrapper">
+    <div class="body">
+      <h1>AA Earnings Statement Converter</h1>
+      <h4>Convert AA pay statement from PDF to Excel</h4>
+      <hr class="divider-horizontal" />
+      <div class="row">
+        <div class="row-number">1</div>
+        <div class="column-1">
+          <label for="pdfFile">Select PDF file to convert:</label>
+          <input type="file" id="pdfFile" />
+        </div>
       </div>
-      <hr class="divider-vertical"/>
-      <div class="column">
-        <label for="fileName">Select output file, if it exists:</label>
-        <input type="file" id="excelFile"/>
+      <hr class="divider-horizontal" />
+      <div class="row">
+        <div class="row-number">2</div>
+        <div class="column-2">
+          <label for="openFile">Open saved Excel File:</label>
+          <div class="row gap">
+            <input type="text" id="openFile" placeholder="Enter file path or browse..." />
+            <button type="button" id="clearOpenFileBtn" title="Clear">
+              <i style="font-style: normal; font-size: 18px;">&#x2716;&#xFE0E;</i>
+            </button>
+          </div>
+          <button type="button" id="browseBtn">Browse</button>
+        </div>
+        <div class="column-divider">
+          <hr class="divider-vertical" />
+          OR
+          <hr class="divider-vertical" />
+        </div>
+        <div class="column-2">
+          <label for="outputFileName">Create new Excel File:</label>
+          <div class="row gap">
+            <input type="text" id="outputFileName" placeholder="Enter file name" />
+            <button type="button" id="clearOutputFileNameBtn" title="Clear">
+              <i style="font-style: normal; font-size: 18px;">&#x2716;&#xFE0E;</i>
+            </button>
+          </div>
+        </div>
+      </div>
+      <hr class="divider-horizontal" />
+      <div class="row">
+        <div class="row-number">3</div>
+        <div class="column-1">
+          <p>Click the button below to convert the PDF file to an Excel file.</p>
+          <button id="convertBtn" disabled="true">Convert</button>
+        </div>
+      </div>
+      <p id="status"></p>
+    </div>
+    <div class="footer">
+      <div class="row">
+        <p class="footer-text">© 2025 iAviate Solutions Version 1.0</p>
+
       </div>
     </div>
-    <hr class="divider-horizontal"/>
-    <p>Click the button below to convert the PDF file to an Excel file.</p>
-      <button id="convertBtn">Convert</button>
-    <p id="status"></p>
   </div>
-  
+
   <script>
+    // Add event listener for buttons and disable inputs and buttons as needed
+    document.getElementById('browseBtn').addEventListener('click', async () => {
+      if (window.ipcRenderer) {
+        const result = await window.ipcRenderer.invoke('show-open-dialog');
+        const convertBtn = document.getElementById('convertBtn');
+        if (result) {
+          document.getElementById('openFile').value = result;
+          document.getElementById('outputFileName').disabled = true;
+          convertBtn.disabled = false;
+        }
+      }
+    });
+
+    document.getElementById('outputFileName').addEventListener('input', (event) => {
+      const outputFileNameInput = document.getElementById('outputFileName');
+      const openFileInput = document.getElementById('openFile');
+      const browseBtn = document.getElementById('browseBtn');
+      const convertBtn = document.getElementById('convertBtn');
+      if (outputFileNameInput.value && outputFileNameInput.value.trim().length > 0) {
+        openFileInput.disabled = true;
+        browseBtn.disabled = true;
+        convertBtn.disabled = false;
+      } else {
+        openFileInput.disabled = false;
+        browseBtn.disabled = false;
+        convertBtn.disabled = true;
+      }
+    });
+
+    document.getElementById('openFile').addEventListener('input', (event) => {
+      const openFileInput = document.getElementById('openFile');
+      const outputFileNameInput = document.getElementById('outputFileName');
+      const convertBtn = document.getElementById('convertBtn');
+
+      if (openFileInput.value && openFileInput.value.trim().length > 0) {
+        outputFileNameInput.disabled = true;
+        convertBtn.disabled = false;
+      } else {
+        outputFileNameInput.disabled = false;
+        convertBtn.disabled = true;
+      }
+    });
+
+    // Clear buttons functionality
+    document.getElementById('clearOpenFileBtn').addEventListener('click', () => {
+      const openFileInput = document.getElementById('openFile');
+      openFileInput.value = '';
+      document.getElementById('outputFileName').disabled = false; // Enable output file name input
+    });
+
+    document.getElementById('clearOutputFileNameBtn').addEventListener('click', () => {
+      const outputFileNameInput = document.getElementById('outputFileName');
+      const browseBtn = document.getElementById('browseBtn');
+      outputFileNameInput.value = '';
+      document.getElementById('openFile').disabled = false; 
+      browseBtn.disabled = false; // Enable browse button
+    });
+
+    // Convert button functionality
     document.getElementById('convertBtn').addEventListener('click', () => {
-
       const pdfFileInput = document.getElementById('pdfFile');
-      const excelFileInput = document.getElementById('excelFile');
+      const outputFileName = document.getElementById('outputFileName').value;
+      const outputPath = document.getElementById('openFile').value;
       const pdfFile = pdfFileInput.files[0];
-      const excelFile = excelFileInput.files[0];
-    
+
       if (pdfFile) {
-      document.getElementById('status').textContent = 'Converting...';
-
-      // Create Promises for reading both files
-      const pdfFileReaderPromise = new Promise((resolve, reject) => {
+        document.getElementById('status').textContent = 'Converting...';
+        // Use FileReader to read the file as a Buffer
         const reader = new FileReader();
-        reader.onload = function (event) {
-          resolve(event.target.result); // Resolve with PDF file buffer
-        };
-        reader.onerror = reject; // Reject if there's an error
-        reader.readAsArrayBuffer(pdfFile); // Read PDF file as ArrayBuffer
-      });
-
-      const excelFileReaderPromise = excelFile ? new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = function (event) {
-          resolve(event.target.result); // Resolve with Excel file buffer
-        };
-        reader.onerror = reject; // Reject if there's an error
-        reader.readAsArrayBuffer(excelFile); // Read Excel file as ArrayBuffer
-      }) : Promise.resolve(undefined); // If no Excel file, resolve with null
-
-      // Wait for both files to be read using Promise.all
-      Promise.all([pdfFileReaderPromise, excelFileReaderPromise])
-        .then(([pdfFileBuffer, excelFileBuffer]) => {
-          // Now both files are read, and we can pass the buffers to the main process
-          console.log("PDF File Buffer:", pdfFileBuffer);
-          console.log("Excel File Buffer:", excelFileBuffer);
-          window.ipcRenderer.invoke('parse-pdf', 
-            pdfFileBuffer,
-            excelFileBuffer
-          )
-          .then(outputFilePath => {
+        reader.onload = async function (event) {
+          const pdfFileBuffer = event.target.result;
+          try {
+            // Send the fileBuffer to the main process
+            const outputFilePath = await window.ipcRenderer.invoke('parse-pdf', 
+              pdfFileBuffer,
+              outputPath || undefined,
+              outputFileName || undefined
+            );
             document.getElementById('status').textContent = `Conversion complete. File saved at: ${outputFilePath}`;
-          })
-          .catch(err => {
+          } catch (err) {
             document.getElementById('status').textContent = `Error: ${err}`;
-          });
-        })
-        .catch(err => {
-          document.getElementById('status').textContent = `Error reading files: ${err}`;
-        });
-    } else {
-      document.getElementById('status').textContent = 'Please select a PDF file.';
-    }
-      // if (pdfFile) {
-      //   document.getElementById('status').textContent = 'Converting...';
-      //   // Use FileReader to read the file as a Buffer
-      //   const reader = new FileReader();
-      //   reader.onload = async function (event) {
-      //     const fileBuffer = event[0].target.result;
-      //     excelFileBuffer = undefined;
-      //     if (excelFile) {
-      //       excelFileBuffer = event[1].target.result;
-      //     } 
-      //     try {
-      //       // Send the fileBuffer to the main process
-      //       const outputFilePath = await window.ipcRenderer.invoke('parse-pdf', { 
-      //         fileBuffer, 
-      //         excelFileBuffer 
-      //       });
-      //       document.getElementById('status').textContent = `Conversion complete. File saved at: ${outputFilePath}`;
-      //     } catch (err) {
-      //       document.getElementById('status').textContent = `Error: ${err}`;
-      //     }
-      //   };
+          }
+        };
 
-      //   reader.readAsArrayBuffer([pdfFile, excelFile]);
-      //   //reader.readAsArrayBuffer(excelFile);
-      // } else {
-      //   document.getElementById('status').textContent = 'Please select a PDF file.';
-      // }
+        reader.readAsArrayBuffer(pdfFile);
+      } else {
+        document.getElementById('status').textContent = 'Please select a PDF file.';
+      }
 
     });
   </script>
