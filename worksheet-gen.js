@@ -8,11 +8,6 @@ export class WorkSheetGenerator {
   util = new Utilities();
   textParser = new TextParser();
 
-  // constructor() {
-  //   this.textParser = new TextParser();
-  //   this.util = new Utilities();
-  // }
-
   async addDataToWorkbook(workbook, extractedText) {
     const removeNonNumericChars = this.util.removeNonNumericChars;
 
@@ -284,6 +279,7 @@ export class WorkSheetGenerator {
       removeNonNumericChars(earningsTopData.pltExpDnonTaxCurrent)
     );
     worksheet.getCell("D13").numFmt = "$#,##0.00"; // Format as currency
+    
     worksheet.getCell("A14").value = "PLT EXP ADJ Non-Taxable";
     worksheet.getCell("B14").value = Number(
       earningsTopData.pltExpAdjnonTaxRate
@@ -474,7 +470,7 @@ export class WorkSheetGenerator {
         horizontal: "left",
       };
     }
-    //* Pre-Tax Deductions
+    //? Pre-Tax Deductions
     worksheet.getCell("E7").value = "Pre-Tax Deductions";
     worksheet.getCell("F7").value = "Current";
     worksheet.getCell("E8").value = "Medical Coverage";
@@ -509,7 +505,7 @@ export class WorkSheetGenerator {
     worksheet.getCell("F13").font = { bold: true };
     worksheet.getCell("F13").numFmt = "$#,##0.00"; // Format as currency
 
-    //* Taxes
+    //? Taxes
     worksheet.getCell("E14").value = "Taxes";
     worksheet.getCell("F14").value = "Current";
     worksheet.getCell("E15").value = "Withholding Tax";
@@ -534,7 +530,7 @@ export class WorkSheetGenerator {
     worksheet.getCell("F18").font = { bold: true };
     worksheet.getCell("F18").numFmt = "$#,##0.00"; // Format as currency
 
-    //* After-Tax Deductions
+    //? After-Tax Deductions
     worksheet.getCell("E19").value = "After-Tax Deductions";
     worksheet.getCell("F19").value = "Current";
     worksheet.getCell("E20").value = "Employee Life";
@@ -626,56 +622,10 @@ export class WorkSheetGenerator {
     );
     worksheet.getCell("F37").numFmt = "$#,##0.00"; //
 
-    worksheet.getCell("A40").value = extractedText; // Store the full extracted text in A40
+    worksheet.getCell("A40").value = extractedText; 
+    worksheet.getCell("A40").hidden = true;// Store the full extracted text in A40
 
     return worksheet;
   }
 
-  // async addTotalsToWorkbook(workbook) {
-  //   // Create a new worksheet for totals
-  //   let worksheetTotals = workbook.getWorksheet("Totals");
-  //   if (!worksheetTotals) {
-  //     worksheetTotals = workbook.addWorksheet("Totals");
-  //   }
-
-  //   const medicalCoverage = this.getMedicalCoverage(workbook);
-  //   worksheetTotals.getCell("A1").value = "Medical Coverage Totals";
-  //   worksheetTotals.getCell("A1").font = { bold: true, size: 14 };
-  //   worksheetTotals.getCell("A2").value = "Date";
-  //   worksheetTotals.getCell("B2").value = "Total Medical Coverage";
-  //   worksheetTotals.getCell("A2").font = { bold: true };
-  //   worksheetTotals.getCell("B2").font = { bold: true };
-  //   for (let i = 0; i < medicalCoverage.length; i++) {
-  //     const row = i + 3; // Start from row 3
-  //     worksheetTotals.getCell(`A${row}`).value = medicalCoverage[i].date;
-  //     worksheetTotals.getCell(`B${row}`).value =
-  //       medicalCoverage[i].totalMedicalCoverage;
-  //     worksheetTotals.getCell(`B${row}`).numFmt = "$#,##0.00"; // Format as currency
-  //     worksheetTotals.getCell((`A${row + 1}`)).value = "Total";
-  //     worksheetTotals.getCell((`B${row + 1}`)).value = {
-  //       formula: `SUM(B3:B${row})`, result: 0,
-  //     };
-  //     worksheetTotals.getCell((`B${row + 1}`)).numFmt = "$#,##0.00"; // Format as currency
-  //     worksheetTotals.getCell((`B${row + 1}`)).font = { bold: true };
-  //   }
-
-  //   return workbook;
-  // }
-
-  // getMedicalCoverage(workbook) {
-  //   let medicalCoverage = [];
-  //   workbook.eachSheet((sheet) => {
-  //     const totalMedicalCoverage = sheet.getCell("F8").value;
-  //     const sheetDate = sheet.getCell("B1").value;
-  //     if (totalMedicalCoverage >= 0 && sheetDate) {
-  //       medicalCoverage.push({
-  //         date: sheetDate,
-  //         totalMedicalCoverage:
-  //           totalMedicalCoverage.result || totalMedicalCoverage,
-  //       });
-  //     }
-  //   });
-
-  //   return medicalCoverage;
-  // }
 }

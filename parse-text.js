@@ -59,7 +59,7 @@ export class TextParser {
     const pltExpDnonTaxRegex =
       /D\s*Non-Taxable\s*([\d,]+(?:\.\d+)?)\s*([\d,]+(?:\.\d+)?)\s*([\d,]+(?:\.\d+)?)/i;
     const pltExpAdjnonTaxRegex =
-      /ADJ\s*Non-Taxable\s*([\d,]+(?:\.\d+)?)\s*([\d,]+(?:\.\d+)?)\s*((?:\-\d+[\d,]+(?:\.\d+)?))/i;
+      /ADJ\s*Non-Taxable\s*([\d,]+(?:\.\d+)?)\s*([\d,]+(?:\.\d+)?)\s*((?:-[\d,]+(?:\.\d+)?)|([\d,]+(?:\.\d+)?))/i;
     const pltExpInonTaxRegex =
       /I\s*Non-Taxable\s*([\d,]+(?:\.\d+)?)\s*([\d,]+(?:\.\d+)?)\s*([\d,]+(?:\.\d+)?)/i;
 

@@ -1,17 +1,19 @@
 import { app, BrowserWindow, ipcMain, dialog } from "electron";
 import pkg from "exceljs";
-import path from "node:path";
+import path, { parse } from "node:path";
 import { DateTime} from "luxon";
 import fs from "fs";
 import { WorkSheetGenerator } from './worksheet-gen.js';
 import { Utilities } from "./utilities.js";
 import { DeductTotalsWorksheet } from './deduct-tot-ws.js';
+import { EarningsTotalsWorksheet } from './earn-tot-ws.js';
 
 let window;
 const { Workbook } = pkg;
 const workSheetGenerator = new WorkSheetGenerator();
 const util = new Utilities();
 const deductTotalsWS = new DeductTotalsWorksheet();
+const earningTotalsWS = new EarningsTotalsWorksheet();
 
 
 function createWindow() {
@@ -87,12 +89,15 @@ ipcMain.handle("parse-pdf", async (event, pdfFile, outputPath, outputFileName ) 
       // Add new worksheet and populate data
       await workSheetGenerator.addDataToWorkbook(workbook, extractedText);
       await deductTotalsWS.getAllDeductions(workbook);
+      await earningTotalsWS.getAllEarnings(workbook);
+
       const sortedSheetNames = workbook.worksheets
         .map(ws => ws.name)
         //.filter(name => name !== "Totals")
         .sort((a, b) => {
           // Parse ddMMMyyyy to Date objects for comparison
           const parseDate = str => DateTime.fromFormat(str, "ddMMMyyyy");
+          console.log('DATE A: ', parseDate(a), 'DATE B: ', parseDate(b));
           const dateA = parseDate(a);
           const dateB = parseDate(b);
           return dateA.toMillis() - dateB.toMillis();
@@ -109,8 +114,10 @@ ipcMain.handle("parse-pdf", async (event, pdfFile, outputPath, outputFileName ) 
       // Add the first sheet with parsed data
       await workSheetGenerator.addDataToWorkbook(newWorkbook, extractedText);
       await deductTotalsWS.getAllDeductions(newWorkbook);
+      await earningTotalsWS.getAllEarnings(newWorkbook);
       // Save the new workbook
       await newWorkbook.xlsx.writeFile(outputFilePath);
+      
     }
 
     return outputFilePath;  // Return the file path for the saved Excel file
