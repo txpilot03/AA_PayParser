@@ -1,3 +1,5 @@
+import { sum } from 'pdf-lib';
+
 export class EarningsTotalsWorksheet {
 
   async getAllEarnings(workbook) {
@@ -16,10 +18,11 @@ export class EarningsTotalsWorksheet {
 
     for (let cell of ["A1","A2","B2","C2","D2","E2","F2","G2",
       "H2","I2","J2","A31","A32","B32","C32","D32","E32","F32",
-      "G32","H32","I32","J32","K32","L32","M32","N32","O32"
+      "G32","H32","I32","J32","K32","L32","M32","N32","O32","L1",
+      "L2","M2","N2","O2"
     ]) {
       worksheet.getCell(cell).alignment = { horizontal: 'center' };
-      if (cell === "A1" || cell === "A31") {
+      if (cell === "A1" || cell === "A31" || cell === "L1") {
         worksheet.getCell(cell).fill = {
           type: 'pattern',
           pattern: 'solid',
@@ -41,13 +44,17 @@ export class EarningsTotalsWorksheet {
       }
     }
 
-    worksheet.mergeCells('A1:J1');
-    worksheet.mergeCells('A31:O31');
+    worksheet.mergeCells("A1:J1");
+    worksheet.mergeCells("A31:O31");
+    worksheet.mergeCells("L1:O1");
     worksheet.getRow(1).height = 30;
     worksheet.getRow(31).height = 30;
 
     this.addEarningsTop(workbook, worksheet);
     this.addEarningsBottom(workbook, worksheet);
+    this.addTotalEarnings(workbook, worksheet);
+
+    return workbook;
   }
 
   async addEarningsTop(workbook, worksheet) {
@@ -414,5 +421,56 @@ export class EarningsTotalsWorksheet {
     });
 
     return earningsBottom;
+  }
+
+  async addTotalEarnings(workbook, worksheet) {
+    let sumEarningsTop = 0;
+    let sumEarningsBottom = 0;
+    const earningsTop = this.getEarningsTopData(workbook);
+    const earningsBottom = this.getEarningsBottomData(workbook);
+    // Sum all numeric properties except 'date' for each entry in earningsTop
+    sumEarningsTop = earningsTop.reduce((acc, entry) => {
+      return acc + Object.entries(entry)
+      .filter(([key, _]) => key !== 'date')
+      .reduce((sum, [_, value]) => sum + value, 0);
+    }, 0);
+    sumEarningsBottom = earningsBottom.reduce((acc, entry) => {
+      return acc + Object.entries(entry)
+      .filter(([key, _]) => key !== 'date')
+      .reduce((sum, [_, value]) => sum + value, 0);
+    }, 0);
+
+    console.log('Sum: ', sumEarningsTop);
+
+    worksheet.getCell("L1").value = "Earnings Totals";
+    worksheet.getCell("L1").font = { bold: true, size: 14 };
+    worksheet.getCell("L1").alignment = { horizontal: 'center', vertical: 'middle' };
+    worksheet.getCell("L2").value = "Date";
+    worksheet.getCell("L2").font = { bold: true };
+    worksheet.getCell("M2").value = "Pay Month";
+    worksheet.getCell("M2").font = { bold: true };
+    worksheet.getCell("N2").value = "Pay Period";
+    worksheet.getCell("N2").font = { bold: true };
+    worksheet.getCell("O2").value = "Earnings Total";
+    worksheet.getCell("O2").font = { bold: true };
+
+    
+    for (let i = 0; i < earningsTop.length; i++) {
+      const row = i + 3;
+      worksheet.getCell(`L${row}`).value = earningsTop[i].date;
+      worksheet.getCell(`L${row}`).alignment = { horizontal: 'center' };
+      worksheet.getCell(`L${row}`).numFmt = "ddMMMyyyy";
+      worksheet.getCell(`L${row}`).font = { bold: true };
+      worksheet.getCell(`M${row}`).value = sumEarningsTop;
+      worksheet.getCell(`M${row}`).numFmt = "$#,##0.00";
+      worksheet.getCell(`N${row}`).value = sumEarningsBottom;
+      worksheet.getCell(`N${row}`).numFmt = "$#,##0.00";
+      worksheet.getCell(`O${row}`).value = {
+        formula: `SUM(M${row}:N${row})`,
+        result: sumEarningsTop + sumEarningsBottom
+      };
+      worksheet.getCell(`O${row}`).numFmt = "$#,##0.00";
+      worksheet.getCell(`O${row}`).font = { bold: true };
+    }
   }
 }
