@@ -259,6 +259,7 @@
       const outputPath = document.getElementById('openFile').value;
       const pdfFile = pdfFileInput.files[0];
 
+
       if (pdfFile) {
         document.getElementById('status').textContent = 'Converting...';
         // Use FileReader to read the file as a Buffer
@@ -267,7 +268,8 @@
           const pdfFileBuffer = event.target.result;
           try {
             // Send the fileBuffer to the main process
-            const outputFilePath = await window.ipcRenderer.invoke('parse-pdf', 
+            const outputFilePath = await window.ipcRenderer.invoke('parse-pdf',
+              pdfFileInput,
               pdfFileBuffer,
               outputPath || undefined,
               outputFileName || undefined

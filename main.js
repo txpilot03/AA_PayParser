@@ -8,6 +8,9 @@ import { Utilities } from "./utilities.js";
 import { DeductTotalsWorksheet } from './deduct-tot-ws.js';
 import { EarningsTotalsWorksheet } from './earn-tot-ws.js';
 
+//import fs from "fs";
+import PDFParser from "pdf2json";
+
 let window;
 const { Workbook } = pkg;
 const workSheetGenerator = new WorkSheetGenerator();
@@ -58,15 +61,25 @@ ipcMain.handle("show-open-dialog", async () => {
 });
 
 // IPC to handle the file reading
-ipcMain.handle("parse-pdf", async (event, pdfFile, outputPath, outputFileName ) => {
+ipcMain.handle("parse-pdf", async (event, pdfFile, pdfFileBuffer, outputPath, outputFileName ) => {
 
-  
+  console.log('PDF FILE: ', pdfFile);
+  // const pdfParser = new PDFParser();
+  // const test = pdfParser.parseBuffer(pdfFileBuffer);
+  //     console.log(test);
+  // fs.readFile(pdfFile, (err, pdfBuffer) => {
+  //   if (!err) {
+  //     const test = pdfParser.parseBuffer(pdfBuffer);
+  //     console.log(test);
+  //   }
+  // });
+
   try {
-    if (!pdfFile) {
+    if (!pdfFileBuffer) {
       throw new Error("PDF file buffer is undefined or null");
     }
 
-    const extractedText = await util.extractTextFromPDF(pdfFile);
+    const extractedText = await util.extractTextFromPDF(pdfFileBuffer);
 
     let outputFilePath;
     let excelFile = null;
