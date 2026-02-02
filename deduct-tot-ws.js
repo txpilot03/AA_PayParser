@@ -287,11 +287,11 @@ export class DeductTotalsWorksheet {
     worksheet.getCell("B60").font = { bold: true };
     worksheet.getCell("C60").value = "Dental Discount";
     worksheet.getCell("C60").font = { bold: true };
-    worksheet.getCell("D60").value = "Roth 401(k)";
+    worksheet.getCell("D60").value = "PAC-APA";
     worksheet.getCell("D60").font = { bold: true };
-    worksheet.getCell("E60").value = "PAC-APA";
+    worksheet.getCell("E60").value = "Union Dues";
     worksheet.getCell("E60").font = { bold: true };
-    worksheet.getCell("F60").value = "Union Dues";
+    worksheet.getCell("F60").value = "Roth 401(k)";
     worksheet.getCell("F60").font = { bold: true };
     worksheet.getCell("G60").value = "Total";
     worksheet.getCell("G60").font = { bold: true };
@@ -306,11 +306,11 @@ export class DeductTotalsWorksheet {
       worksheet.getCell(`B${row}`).numFmt = "$#,##0.00";
       worksheet.getCell(`C${row}`).value = afterTaxDeductions[i].dentalDiscountPlan;
       worksheet.getCell(`C${row}`).numFmt = "$#,##0.00";
-      worksheet.getCell(`D${row}`).value = afterTaxDeductions[i].roth401k;
+      worksheet.getCell(`D${row}`).value = afterTaxDeductions[i].pacAPA;
       worksheet.getCell(`D${row}`).numFmt = "$#,##0.00";
-      worksheet.getCell(`E${row}`).value = afterTaxDeductions[i].pacAPA;
+      worksheet.getCell(`E${row}`).value = afterTaxDeductions[i].unionDues;
       worksheet.getCell(`E${row}`).numFmt = "$#,##0.00";
-      worksheet.getCell(`F${row}`).value = afterTaxDeductions[i].unionDues;
+      worksheet.getCell(`F${row}`).value = afterTaxDeductions[i].roth401k;
       worksheet.getCell(`F${row}`).numFmt = "$#,##0.00";
       worksheet.getCell(`G${row}`).value = {
         formula: `SUM(B${row}:F${row})`,
@@ -322,7 +322,6 @@ export class DeductTotalsWorksheet {
 
     const row = afterTaxDeductions.length + 61;
     worksheet.getCell(`A${row}`).value = "Total YTD";
-    worksheet.getCell(`A${row}`).numFmt = "$#,##0.00";
     worksheet.getCell(`A${row}`).font = { bold: true, size: 14 };
     worksheet.getCell(`A${row}`).alignment = { horizontal: 'left' };
     worksheet.getCell(`A${row}`).border = {
@@ -342,21 +341,21 @@ export class DeductTotalsWorksheet {
     worksheet.getCell(`C${row}`).border = {
       top: { style: 'thick' },
     };
-    // Roth 401(k) Totals
+    // PAC-APA Totals
     worksheet.getCell(`D${row}`).value = { formula: `SUM(D61:D${row - 1})`, result: 0 };
     worksheet.getCell(`D${row}`).numFmt = "$#,##0.00";
     worksheet.getCell(`D${row}`).font = { bold: true, size: 14 };
     worksheet.getCell(`D${row}`).border = {
       top: { style: 'thick' },
     };
-    // PAC-APA Totals
+    // Union Dues Totals
     worksheet.getCell(`E${row}`).value = { formula: `SUM(E61:E${row - 1})`, result: 0 };
     worksheet.getCell(`E${row}`).numFmt = "$#,##0.00";
     worksheet.getCell(`E${row}`).font = { bold: true, size: 14 };
     worksheet.getCell(`E${row}`).border = {
       top: { style: 'thick' },
     };
-    // Union Dues Totals
+    // Roth 401(k) Totals
     worksheet.getCell(`F${row}`).value = { formula: `SUM(F61:F${row - 1})`, result: 0 };
     worksheet.getCell(`F${row}`).numFmt = "$#,##0.00";
     worksheet.getCell(`F${row}`).font = { bold: true, size: 14 };
@@ -380,17 +379,17 @@ export class DeductTotalsWorksheet {
         const sheetDate = sheet.getCell("B1").value;
         const employeeLife = sheet.getCell("F20").value;
         const dentalDiscountPlan = sheet.getCell("F21").value;
-        const roth401k = sheet.getCell("F22").value;
-        const pacAPA = sheet.getCell("F23").value;
-        const unionDues = sheet.getCell("F24").value;
+        const pacAPA = sheet.getCell("F22").value;
+        const unionDues = sheet.getCell("F23").value;
+        const roth401k = sheet.getCell("F24").value;
         if (sheetDate) {
           afterTaxDeductions.push({
             date: sheetDate,
             employeeLife: employeeLife || 0,
             dentalDiscountPlan: dentalDiscountPlan || 0,
-            roth401k: roth401k || 0,
             pacAPA: pacAPA || 0,
             unionDues: unionDues || 0,
+            roth401k: roth401k || 0,
           });
         }
       }

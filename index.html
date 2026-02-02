@@ -6,6 +6,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AA PayParser</title>
   <style>
+
+    body {
+      background: linear-gradient(to bottom left, #003366, #66b3ff);
+    }
     .wrapper {
       display: flex;
       flex-direction: column;
@@ -137,8 +141,9 @@
 <body>
   <div class="wrapper">
     <div class="body">
-      <h1>AA Earnings Statement Converter</h1>
-      <h4>Convert AA pay statement from PDF to Excel</h4>
+      <nav >File</nav>
+      <h1>AA Pay Parser</h1>
+      <h4>Convert your AA pay statement from PDF to Excel</h4>
       <hr class="divider-horizontal" />
       <div class="row">
         <div class="row-number">1</div>
@@ -148,10 +153,11 @@
         </div>
       </div>
       <hr class="divider-horizontal" />
+      <small style="margin-left: 24px;">You can either open an existing Excel file to append the data or create a new Excel file.</small>
       <div class="row">
         <div class="row-number">2</div>
         <div class="column-2">
-          <label for="openFile">Open saved Excel File:</label>
+          <label for="openFile">Open existing Excel File:</label>
           <div class="row gap">
             <input type="text" id="openFile" placeholder="Enter file path or browse..." />
             <button type="button" id="clearOpenFileBtn" title="Clear">
@@ -276,7 +282,7 @@
             );
             document.getElementById('status').textContent = `Conversion complete. File saved at: ${outputFilePath}`;
           } catch (err) {
-            document.getElementById('status').textContent = `Error: ${err}`;
+            document.getElementById('status').textContent = `${err}`;
           }
         };
 

@@ -424,23 +424,8 @@ export class EarningsTotalsWorksheet {
   }
 
   async addTotalEarnings(workbook, worksheet) {
-    let sumEarningsTop = 0;
-    let sumEarningsBottom = 0;
-    const earningsTop = this.getEarningsTopData(workbook);
-    const earningsBottom = this.getEarningsBottomData(workbook);
-    // Sum all numeric properties except 'date' for each entry in earningsTop
-    sumEarningsTop = earningsTop.reduce((acc, entry) => {
-      return acc + Object.entries(entry)
-      .filter(([key, _]) => key !== 'date')
-      .reduce((sum, [_, value]) => sum + value, 0);
-    }, 0);
-    sumEarningsBottom = earningsBottom.reduce((acc, entry) => {
-      return acc + Object.entries(entry)
-      .filter(([key, _]) => key !== 'date')
-      .reduce((sum, [_, value]) => sum + value, 0);
-    }, 0);
-
-    console.log('Sum: ', sumEarningsTop);
+    let earningsTop = this.getEarningsTopData(workbook);
+    let earningsBottom = this.getEarningsBottomData(workbook);
 
     worksheet.getCell("L1").value = "Earnings Totals";
     worksheet.getCell("L1").font = { bold: true, size: 14 };
@@ -454,9 +439,18 @@ export class EarningsTotalsWorksheet {
     worksheet.getCell("O2").value = "Earnings Total";
     worksheet.getCell("O2").font = { bold: true };
 
-    
     for (let i = 0; i < earningsTop.length; i++) {
       const row = i + 3;
+      
+      // Sum the current entry's values (excluding date)
+      const sumEarningsTop = Object.entries(earningsTop[i])
+        .filter(([key, _]) => key !== 'date')
+        .reduce((sum, [_, value]) => sum + value, 0);
+      
+      const sumEarningsBottom = Object.entries(earningsBottom[i])
+        .filter(([key, _]) => key !== 'date')
+        .reduce((sum, [_, value]) => sum + value, 0);
+
       worksheet.getCell(`L${row}`).value = earningsTop[i].date;
       worksheet.getCell(`L${row}`).alignment = { horizontal: 'center' };
       worksheet.getCell(`L${row}`).numFmt = "ddMMMyyyy";
@@ -467,10 +461,49 @@ export class EarningsTotalsWorksheet {
       worksheet.getCell(`N${row}`).numFmt = "$#,##0.00";
       worksheet.getCell(`O${row}`).value = {
         formula: `SUM(M${row}:N${row})`,
-        result: sumEarningsTop + sumEarningsBottom
+        result: 0
       };
       worksheet.getCell(`O${row}`).numFmt = "$#,##0.00";
       worksheet.getCell(`O${row}`).font = { bold: true };
     }
+
+    // Add totals row
+    const row = earningsTop.length + 3;
+    worksheet.getCell(`L${row}`).value = "Totals";
+    worksheet.getCell(`L${row}`).font = { bold: true, size: 14 };
+    worksheet.getCell(`L${row}`).alignment = { horizontal: 'left' };
+    worksheet.getCell(`L${row}`).border = {
+      top: { style: 'thick' },
+    };
+    worksheet.getCell(`M${row}`).value = { formula: `SUM(M3:M${row - 1})`, result: 0 };
+    worksheet.getCell(`M${row}`).numFmt = "$#,##0.00";
+    worksheet.getCell(`M${row}`).font = { bold: true, size: 14 };
+    worksheet.getCell(`M${row}`).border = {
+      top: { style: 'thick' },
+    };
+    worksheet.getCell(`N${row}`).value = { formula: `SUM(N3:N${row - 1})`, result: 0 };
+    worksheet.getCell(`N${row}`).numFmt = "$#,##0.00";
+    worksheet.getCell(`N${row}`).font = { bold: true, size: 14 };
+    worksheet.getCell(`N${row}`).border = {
+      top: { style: 'thick' },
+    };
+    worksheet.getCell(`O${row}`).value = { formula: `SUM(O3:O${row - 1})`, result: 0 };
+    worksheet.getCell(`O${row}`).numFmt = "$#,##0.00";
+    worksheet.getCell(`O${row}`).font = { bold: true, size: 14 };
+    worksheet.getCell(`O${row}`).border = {
+      top: { style: 'thick' },
+    };
   }
+
+
+    // sumEarningsTop = earningsTop.reduce((acc, entry) => {
+    //   return acc + Object.entries(entry)
+    //   .filter(([key, _]) => key !== 'date')
+    //   .reduce((sum, [_, value]) => sum + value, 0);
+    // }, 0);
+    // sumEarningsBottom = earningsBottom.reduce((acc, entry) => {
+    //   return acc + Object.entries(entry)
+    //   .filter(([key, _]) => key !== 'date')
+    //   .reduce((sum, [_, value]) => sum + value, 0);
+    // }, 0);
 }

@@ -7,12 +7,14 @@ import { WorkSheetGenerator } from './worksheet-gen.js';
 import { Utilities } from "./utilities.js";
 import { DeductTotalsWorksheet } from './deduct-tot-ws.js';
 import { EarningsTotalsWorksheet } from './earn-tot-ws.js';
-
+import { HybridPDFParser } from './parser.js';
 //import fs from "fs";
 import PDFParser from "pdf2json";
 
 let window;
 const { Workbook } = pkg;
+const hybridParser = new HybridPDFParser();
+
 const workSheetGenerator = new WorkSheetGenerator();
 const util = new Utilities();
 const deductTotalsWS = new DeductTotalsWorksheet();
@@ -62,34 +64,30 @@ ipcMain.handle("show-open-dialog", async () => {
 
 // IPC to handle the file reading
 ipcMain.handle("parse-pdf", async (event, pdfFile, pdfFileBuffer, outputPath, outputFileName ) => {
-
-  console.log('PDF FILE: ', pdfFile);
-  // const pdfParser = new PDFParser();
-  // const test = pdfParser.parseBuffer(pdfFileBuffer);
-  //     console.log(test);
-  // fs.readFile(pdfFile, (err, pdfBuffer) => {
-  //   if (!err) {
-  //     const test = pdfParser.parseBuffer(pdfBuffer);
-  //     console.log(test);
-  //   }
-  // });
+  console.log('=== PDF PARSE DEBUG ===');
+  console.log('Buffer type:', pdfFileBuffer.constructor.name);
+  console.log('Is ArrayBuffer:', pdfFileBuffer instanceof ArrayBuffer);
+  console.log('Is Buffer:', Buffer.isBuffer(pdfFileBuffer));
+  console.log('Buffer length:', pdfFileBuffer.byteLength || pdfFileBuffer.length);
+  console.log('=======================');
 
   try {
     if (!pdfFileBuffer) {
       throw new Error("PDF file buffer is undefined or null");
     }
 
-    const extractedText = await util.extractTextFromPDF(pdfFileBuffer);
+    // Use hybrid parser to extract structured data
+    const parsedData = await hybridParser.parse(pdfFileBuffer);
+    const legacyData = hybridParser.convertToLegacyFormat(parsedData);
+    console.log('Parsed Data: ', parsedData);
 
     let outputFilePath;
     let excelFile = null;
     if (outputPath) {
       outputFilePath = outputPath;
-      //const outputFileName = path.basename(outputFilePath);
       const fileContent = fs.readFileSync(outputPath);
       excelFile = fileContent ? Promise.resolve(fileContent) : Promise.resolve(null);
-    }
-    else {
+    } else {
       outputFilePath = path.join(app.getPath('downloads'), `${outputFileName}.xlsx` ?? 'My_AA_Pay.xlsx');
     }
 
@@ -99,17 +97,16 @@ ipcMain.handle("parse-pdf", async (event, pdfFile, pdfFileBuffer, outputPath, ou
       const workbook = new Workbook();
       await workbook.xlsx.load(excelFile);
 
-      // Add new worksheet and populate data
-      await workSheetGenerator.addDataToWorkbook(workbook, extractedText);
+      // Add new worksheet and populate data using hybrid parser
+      await workSheetGenerator.addDataToWorkbookFromParsed(workbook, legacyData);
       await deductTotalsWS.getAllDeductions(workbook);
       await earningTotalsWS.getAllEarnings(workbook);
 
       const sortedSheetNames = workbook.worksheets
         .map(ws => ws.name)
-        //.filter(name => name !== "Totals")
         .sort((a, b) => {
           // Parse ddMMMyyyy to Date objects for comparison
-          const parseDate = str => DateTime.fromFormat(str, "ddMMMyyyy");
+          const parseDate = str => DateTime.fromFormat(str, "yyyy-MM-dd", { zone: 'utc' });
           console.log('DATE A: ', parseDate(a), 'DATE B: ', parseDate(b));
           const dateA = parseDate(a);
           const dateB = parseDate(b);
@@ -119,23 +116,69 @@ ipcMain.handle("parse-pdf", async (event, pdfFile, pdfFileBuffer, outputPath, ou
       sortedSheetNames.forEach((name, idx) => {
         workbook.worksheets.find(ws => ws.name === name).order = idx;
       });
-      // Save the modified workbook to the same file path
+
       await workbook.xlsx.writeFile(outputFilePath);
     } else {
       const newWorkbook = new Workbook();
-      
-      // Add the first sheet with parsed data
-      await workSheetGenerator.addDataToWorkbook(newWorkbook, extractedText);
+      await workSheetGenerator.addDataToWorkbookFromParsed(newWorkbook, legacyData);
       await deductTotalsWS.getAllDeductions(newWorkbook);
       await earningTotalsWS.getAllEarnings(newWorkbook);
-      // Save the new workbook
       await newWorkbook.xlsx.writeFile(outputFilePath);
-      
     }
 
     return outputFilePath;  // Return the file path for the saved Excel file
   } catch (error) {
+    console.error('Error parsing PDF')
     throw new Error(`Failed to parse PDF file: ${error.message}`);
   }
 });
 
+// ========================================================================
+// Test function to see hybrid parser output
+// ========================================================================
+async function testHybridParser(pdfFilePath) {
+  try {
+    // Read PDF file
+    const pdfBuffer = fs.readFileSync(pdfFilePath);
+    console.log('Hybrid Buffer');
+    // Parse with hybrid parser
+    const hybridParser = new HybridPDFParser();
+    const parsedData = await hybridParser.parse(pdfBuffer);
+    
+    // Display results in a readable format
+    // console.log('\n=== HEADER INFO ===');
+    // console.log('Pay Period:', parsedData.header.payPeriod);
+    // console.log('Seniority Year:', parsedData.header.seniorityYear);
+    // console.log('Group:', parsedData.header.group);
+    // console.log('Hourly Rate:', parsedData.header.hourlyRate);
+    
+    // console.log('\n=== EARNINGS ===');
+    // console.log('Operational Pay:', parsedData.earnings.operationalPay);
+    // console.log('Flight Training Pay:', parsedData.earnings.fltTrainingPay);
+    // console.log('Sick Pay:', parsedData.earnings.sickPay);
+    
+    // console.log('\n=== DEDUCTIONS ===');
+    // console.log('Medical Coverage:', parsedData.deductions.preTax.medicalCoverage);
+    // console.log('401k:', parsedData.deductions.preTax._401k);
+    // console.log('Withholding Tax:', parsedData.deductions.taxes.withholdingTax);
+    
+    // console.log('\n=== SUMMARY ===');
+    // console.log('Gross:', parsedData.summary.gross);
+    // console.log('Net Pay:', parsedData.summary.netPay);
+    
+    // // Show ALL earnings that were found
+    // console.log('\n=== ALL EARNINGS DATA ===');
+    // for (const [key, value] of Object.entries(parsedData.earnings)) {
+    //   if (value.current !== '0') {
+    //     console.log(`${key}:`, value);
+    //   }
+    // }
+    
+    return parsedData;
+  } catch (error) {
+    console.error('Test failed:', error);
+    throw error;
+  }
+}
+
+// To run test: testHybridParser('/path/to/your/paystub.pdf');
